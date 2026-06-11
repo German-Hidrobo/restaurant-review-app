@@ -12,7 +12,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,10 +23,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "reviews", uniqueConstraints = @UniqueConstraint(name = "unique_user_restaurant_constraint", columnNames = {"written_by", "restaurant_id" }))
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter @Setter
+@Getter
+@Setter
 @Builder
 public class Review {
 
@@ -47,19 +51,29 @@ public class Review {
     private List<Photo> photos;
 
     @ManyToOne
-    @JoinColumn(name = "written_by_user_id")
+    @JoinColumn(name = "written_by")
     private User writtenBy;
 
     @ManyToOne
     @JoinColumn(name = "restaurant_id")
     private Restaurant restaurant;
-    
+
     @Override
     public String toString() {
         return "Review [id=" + id + ", content=" + content + ", rating=" + rating + ", datePosting=" + datePosting
                 + ", lastEdited=" + lastEdited + "]";
     }
 
+    @PrePersist
+    private void createOn() {
+        LocalDateTime now = LocalDateTime.now();
+        this.datePosting = now;
+        this.lastEdited = now;
+    }
 
-    
+    @PreUpdate
+    private void updateOn() {
+        this.lastEdited = LocalDateTime.now();
+    }
+
 }

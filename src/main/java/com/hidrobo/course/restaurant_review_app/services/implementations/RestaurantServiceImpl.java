@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,11 +16,13 @@ import com.hidrobo.course.restaurant_review_app.domain.models.Address;
 import com.hidrobo.course.restaurant_review_app.domain.models.Photo;
 import com.hidrobo.course.restaurant_review_app.domain.models.Restaurant;
 import com.hidrobo.course.restaurant_review_app.domain.models.TimeRange;
+import com.hidrobo.course.restaurant_review_app.domain.models.User;
 import com.hidrobo.course.restaurant_review_app.mappers.AddressMapper;
 import com.hidrobo.course.restaurant_review_app.mappers.TimeRangeMapper;
 import com.hidrobo.course.restaurant_review_app.repository.RestaurantRepository;
 import com.hidrobo.course.restaurant_review_app.services.PhotoService;
 import com.hidrobo.course.restaurant_review_app.services.RestaurantService;
+import com.hidrobo.course.restaurant_review_app.services.UserService;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +36,14 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final AddressMapper addressMapper;
     private final TimeRangeMapper timeRangeMapper;
     private final PhotoService photoService;
+    private final UserService userService;
 
+    @SuppressWarnings("null")
     @Transactional
     @Override
-    public Restaurant createRestaurant(CreateRestaurantRequest restaurantRequest, List<MultipartFile> files) {
-
+    public Restaurant createRestaurant(UUID userId, CreateRestaurantRequest restaurantRequest,
+            List<MultipartFile> files) {
+        User user = userService.getUserById(userId);
         List<Photo> photos = files.stream().map(photoService::uploadPhoto).toList();
 
         List<TimeRange> operatingHours = restaurantRequest.operatingHours().stream()
@@ -46,22 +52,30 @@ public class RestaurantServiceImpl implements RestaurantService {
 
         Address address = addressMapper.toEntity(restaurantRequest.address());
 
-        Restaurant restaurant = new Restaurant();
-        restaurant.setName(restaurantRequest.name());
-        restaurant.setCuisineType(restaurantRequest.cuisineType());
-        restaurant.setContactInformation(restaurantRequest.contactInformation());
-        restaurant.setAddress(address);
-        restaurant.setPhotos(photos);
+        Restaurant restaurant = Restaurant.builder()
+                .name(restaurantRequest.name())
+                .cuisineType(restaurantRequest.cuisineType())
+                .contactInformation(restaurantRequest.contactInformation())
+                .address(address)
+                .photos(photos)
+                .createdBy(user)
+                .build();
+
         restaurant.addOperatingHours(operatingHours);
-        
+
         return restaurantRepository.save(restaurant);
     }
 
     @SuppressWarnings("null")
     @Transactional
     @Override
-    public void deleteRestaurantById(UUID id) {
-        restaurantRepository.deleteById(id);
+    public void deleteRestaurantById(UUID userId, UUID id) {
+
+        Restaurant restaurant = getRestaurantById(id);
+        if (!restaurant.getCreatedBy().getId().equals(userId)) {
+            throw new AccessDeniedException("Unauthorized, only the restaurant's creator can delete it");
+        }
+        restaurantRepository.delete(restaurant);
     }
 
     @SuppressWarnings("null")
@@ -99,14 +113,12 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     private void updateOperatingHours(List<TimeRange> currentHours, List<TimeRangeDto> incomingHoursDtos) {
-        if (incomingHoursDtos == null) {
-            currentHours.clear();
-            return;
-        }
+
         List<UUID> incomingIds = incomingHoursDtos.stream()
                 .map(TimeRangeDto::id)
                 .filter(Objects::nonNull)
                 .toList();
+
         currentHours.removeIf(existing -> !incomingIds.contains(existing.getId()));
 
         for (TimeRangeDto dto : incomingHoursDtos) {

@@ -43,11 +43,14 @@ public class PhotoServiceImpl implements PhotoService {
 
     }
 
+    
+    @Transactional(readOnly = true)
     @Override
     public Optional<Resource> getPhotoAsResource(String filename) {
         return storageService.loadAsResource(filename);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<Resource> getPhotoAsResourceById(UUID photoId) {
 

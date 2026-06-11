@@ -5,6 +5,7 @@ import java.util.Locale;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -134,11 +135,16 @@ public class ErrorController {
                 }
                 if (ex.getMessage().contains("users_email_key")) {
                         message = "Email already exists";
+                } 
+
+                if (ex.getMessage().contains("reviews_user_id_restaurant_id_key")) {
+                        message = "A user cannot review the same restaurant more than once";
                 }
-                else{
+
+                else {
                         message = "Error en la consulta";
                 }
-         
+
                 ApiErrorResponse errorResponse = ApiErrorResponse.builder()
                                 .status(HttpStatus.BAD_REQUEST.value())
                                 .message(message)
@@ -150,4 +156,17 @@ public class ErrorController {
                                 errorResponse,
                                 HttpStatus.BAD_REQUEST);
         }
+
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<ApiErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
+                ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                                .status(HttpStatus.FORBIDDEN.value())
+                                .message(ex.getMessage())
+                                .build();
+                return new ResponseEntity<ApiErrorResponse>(
+                                errorResponse,
+                                HttpStatus.FORBIDDEN);
+        }
+
+
 }

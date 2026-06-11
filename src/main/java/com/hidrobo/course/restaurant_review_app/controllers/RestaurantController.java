@@ -11,6 +11,7 @@ import com.hidrobo.course.restaurant_review_app.domain.dtos.UpdateRestaurantRequ
 import com.hidrobo.course.restaurant_review_app.mappers.RestaurantMapper;
 import com.hidrobo.course.restaurant_review_app.services.RestaurantService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -24,8 +25,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
-
 
 @RestController
 @RequiredArgsConstructor
@@ -48,26 +49,28 @@ public class RestaurantController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<RestaurantResponse> createRestaurant(
-            @RequestPart("restaurant") CreateRestaurantRequest restaurantRequest,
-            @RequestPart("files") List<MultipartFile> files) {
+            @Valid @RequestPart("restaurant") CreateRestaurantRequest restaurantRequest,
+            @RequestPart("files") List<MultipartFile> files,
+            @RequestAttribute UUID userId) {
 
         return new ResponseEntity<>(
-                restaurantMapper.toDto(restaurantService.createRestaurant(restaurantRequest, files)),
+                restaurantMapper.toDto(restaurantService.createRestaurant(userId, restaurantRequest, files)),
                 HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRestaurant(@PathVariable UUID id) {
-        restaurantService.deleteRestaurantById(id);
+    public ResponseEntity<Void> deleteRestaurant(
+            @RequestAttribute UUID userId,
+            @PathVariable UUID id) {
+        restaurantService.deleteRestaurantById(userId, id);
         return ResponseEntity.noContent().build();
     }
 
-
     @PutMapping("/{id}")
     public ResponseEntity<RestaurantResponse> updateRestaurant(
-        @PathVariable UUID id, 
-        @RequestBody UpdateRestaurantRequest restaurantRequest) {
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateRestaurantRequest restaurantRequest) {
         return ResponseEntity.ok(restaurantMapper.toDto(
-            restaurantService.updateRestaurant(id, restaurantRequest)));
+                restaurantService.updateRestaurant(id, restaurantRequest)));
     }
 }

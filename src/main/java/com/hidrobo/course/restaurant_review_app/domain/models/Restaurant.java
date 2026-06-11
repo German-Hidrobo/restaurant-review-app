@@ -53,7 +53,7 @@ public class Restaurant {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Photo> photos;
 
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TimeRange> operatingHours;
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.REMOVE, orphanRemoval = true)

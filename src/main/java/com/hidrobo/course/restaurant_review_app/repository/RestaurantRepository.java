@@ -10,6 +10,4 @@ import com.hidrobo.course.restaurant_review_app.domain.models.Restaurant;
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, UUID>{
 
-    // @Query("SELECT r FROM Restaurant r LEFT JOIN FETCH r.photos  LEFT JOIN FETCH r.address WHERE r.id = :id")
-    // Optional<Restaurant> getRestaurantById(UUID id);
 }

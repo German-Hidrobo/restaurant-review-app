@@ -11,9 +11,9 @@ import com.hidrobo.course.restaurant_review_app.domain.models.Restaurant;
 
 public interface RestaurantService {
 
-    Restaurant createRestaurant(CreateRestaurantRequest restaurantRequest, List<MultipartFile> files);
+    Restaurant createRestaurant(UUID userId, CreateRestaurantRequest restaurantRequest, List<MultipartFile> files);
 
-    void deleteRestaurantById(UUID id);
+    void deleteRestaurantById(UUID userId, UUID id);
 
     Restaurant getRestaurantById(UUID id);
 

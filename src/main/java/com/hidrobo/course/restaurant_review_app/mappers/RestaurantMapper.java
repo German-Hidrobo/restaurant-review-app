@@ -6,7 +6,7 @@ import org.mapstruct.ReportingPolicy;
 import com.hidrobo.course.restaurant_review_app.domain.dtos.RestaurantResponse;
 import com.hidrobo.course.restaurant_review_app.domain.models.Restaurant;
 
-@Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface RestaurantMapper {
     
     RestaurantResponse toDto(Restaurant restaurant);
