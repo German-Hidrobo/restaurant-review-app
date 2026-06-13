@@ -1,96 +1,58 @@
-# Aplicación de reviews de restaurantes
+# Aplicación de Reseñas de Restaurantes (Backend API)
 
-Resumen
+## Resumen rápido
+Backend en **Spring Boot** que gestiona restaurantes, fotos y reseñas. Ofrece API REST, almacenamiento de imágenes (multipart) y autenticación JWT.
 
-Aplicación backend en desarrollo para gestionar restaurantes y sus reseñas, construida con Spring Boot. 
-Provee API REST para registrar restaurantes, subir fotos y autenticación mediante JWT.
+## Estado
+- Endpoints de restaurantes, subida/descarga de fotos y autenticación (login/register) implementados.
+- Reseñas: controlador CRUD disponible en `/api/{restaurantId}/reviews` (GET público; POST/PUT/DELETE requieren token).
+- Pendientes: validaciones DTO, manejo global de errores y colección de pruebas.
 
-Estado del proyecto
+## Tecnologías y configuración clave
+- Java 17+, Spring Boot, Spring Security, Spring Data JPA, PostgreSQL (H2 opcional). Maven.
+- Fichero de configuración: `src/main/resources/application.properties` (valores por defecto; se recomienda usar variables de entorno).
 
-- En desarrollo: endpoints para restaurantes y gestión de fotos están implementados.
-- Autenticación (login/register) con JWT disponible.
-- Módulo de reseñas (endpoints para crear/editar/eliminar reseñas) está pendiente de implementación.
+Valores por defecto actuales (ajustar por entorno):
 
-Tecnologías
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5433/restaurant_review
+spring.datasource.username=postgres
+spring.servlet.multipart.max-file-size=10MB
+jwt.secret=<valor_actual_en_properties; mover a env>
+```
 
-- Java 17+, Spring Boot, Spring Security
-- JPA / Hibernate
-- PostgreSQL para desarrollo; se puede usar H2 para pruebas rápidas
+Variables de entorno recomendadas:
 
-Configuración
+```bash
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/restaurant_review
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=changeme
+APP_JWT_SECRET=changeme_secure_value
+```
 
-- Revisar `src/main/resources/application.properties` para la configuración de la base de datos y tamaño máximo de ficheros.
-- Se recomienda configurar un secret JWT seguro en variables de entorno o un vault en lugar de commitearlo en el repositorio.
+Usuario de prueba creado automáticamente: `test@demo.com` / `test`.
 
-Usuario de prueba
+## Arranque rápido
+1. Crear BD (p.ej. `restaurant_review`).
+2. Ejecutar:
 
-El proyecto crea un usuario de prueba al iniciar si no hay usuarios:
-- email: `test@demo.com`
-- password: `test`
+```bash
+mvn clean package
+mvn spring-boot:run
+```
 
-Arranque
+La API escucha en `http://localhost:8080` por defecto.
 
-1. Crear la base de datos PostgreSQL.
-2. Construir y ejecutar:
-   mvn clean package
-   mvn spring-boot:run
-3. El servicio se expondrá en `http://localhost:8080` por defecto.
+## Endpoints principales (resumen)
+- Público: `POST /api/auth/login`, `POST /api/auth/register`, `GET /api/restaurants`, `GET /api/restaurants/{id}`.
+- Protegidos: `POST/PUT/DELETE /api/restaurants`, `POST /api/images/upload`, `GET /api/images/{filename}`.
+- Reseñas: CRUD en `/api/{restaurantId}/reviews` (ver arriba).
 
-Endpoints principales
+## Seguridad y notas importantes
+- No dejar `jwt.secret` en el repositorio: mover a variable de entorno o vault.
+- Validar tipo y tamaño de archivos subidos.
 
-Public (no requiere autenticación):
-- POST /api/auth/login — Autenticar usuario. Payload: {"email":"...","password":"..."}
-  - Respuesta: { "token": "<jwt>", "expiresIn": 86400 }
-- POST /api/auth/register — Registrar usuario. Payload: CreateUserRequest (username, firstname, lastname, email, password)
-- GET /api/restaurants — Listar restaurantes
-- GET /api/restaurants/{id} — Obtener restaurante por id
+## Contribuir
+- Abrir issues/PRs. Para cambios grandes, usar una rama por feature.
 
-Protegidos (requieren header `Authorization: Bearer <token>`):
-- POST /api/restaurants (consumes multipart/form-data)
-  - Campos: `restaurant` (JSON) y `files` (uno o varios archivos)
-  - Ejemplo (curl):
-    curl -X POST http://localhost:8080/api/restaurants \
-      -H "Authorization: Bearer <TOKEN>" \
-      -F "restaurant=@restaurant.json;type=application/json" \
-      -F "files=@photo1.jpg"
 
-- PUT /api/restaurants/{id} — Actualizar restaurante (JSON)
-- DELETE /api/restaurants/{id} — Eliminar restaurante
-- POST /api/images/upload — Subir foto (multipart) — devuelve DTO de la foto
-- GET /api/images/{filename} — Descargar/mostrar imagen (requiere token)
-
-Notas sobre payloads (DTOs)
-
-- Login: LoginUserRequest { email, password }
-- Auth response: AuthResponse { token, expiresIn }
-- Crear restaurante: CreateRestaurantRequest (name, cuisineType, contactInformation, address, operatingHours)
-- Respuesta restaurante: RestaurantResponse incluye id, name, cuisineType, contactInformation, address, operatingHours, photos, createdBy
-
-Seguridad
-
-- Spring Security con JWT: `JwtAuthenticationFilter` extrae el token del header `Authorization: Bearer ...`.
-- `SecurityConfig` permite públicamente:
-  - GET `/api/restaurants/**`
-  - POST `/api/auth/login` y `/api/auth/register`
-  - Resto de rutas requieren autenticación.
-
-Estado y tareas pendientes (para el README y el proyecto)
-
-- Implementar endpoints y servicios para reseñas (Review): actualmente existe la entidad `Review` pero no hay controller ni métodos expuestos.
-- Añadir validaciones y manejo de errores más completo y ejemplos de payload/respuesta de error.
-- Mover secretos (JWT, DB) a variables de entorno o configuración segura.
-- Añadir ejemplos Postman/Insomnia y colecciones para testing manual.
-
-Pruebas y desarrollo
-
-- Ejecutar pruebas: `mvn test`
-- Importar el proyecto como Maven en tu IDE
-- Para desarrollo rápido sin PostgreSQL: cambiar a H2 en `application.properties` y ajustar `spring.jpa.hibernate.ddl-auto`
-
-Contribuciones
-
-- Abrir issues o pull requests. Para cambios grandes, crear una rama por feature y describir claramente la implementación.
-
-Contacto
-
-Abrir un issue en el repositorio para dudas o reportes.
