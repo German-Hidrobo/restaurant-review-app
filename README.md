@@ -6,7 +6,6 @@ Backend en **Spring Boot** que gestiona restaurantes, fotos y reseñas. Ofrece A
 ## Estado
 - Endpoints de restaurantes, subida/descarga de fotos y autenticación (login/register) implementados.
 - Reseñas: controlador CRUD disponible en `/api/{restaurantId}/reviews` (GET público; POST/PUT/DELETE requieren token).
-- Pendientes: validaciones DTO, manejo global de errores y colección de pruebas.
 
 ## Tecnologías y configuración clave
 - Java 17+, Spring Boot, Spring Security, Spring Data JPA, PostgreSQL (H2 opcional). Maven.
